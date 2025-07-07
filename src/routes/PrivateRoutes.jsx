@@ -15,7 +15,7 @@ import OfertasPostulante from '../Features/Auth/OfertaPostulante';
 import Postulacion from '../Features/OfertasLaborales/OfertasLaborales';
 import FormularioOfertaFlowbite from '../Features/Auth/CrearOferta';
 import Perfil from '../Features/Auth/Perfil';
-import Vacante from '../Features/Auth/Vacante';
+import Vacante from '../Features/Auth/vacante';
 import TestList from '../Features/Preguntas/TestList';
 import TestsLlenadosPage from '../Features/Preguntas/VerTest';
 
