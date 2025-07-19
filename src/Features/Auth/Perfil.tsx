@@ -272,7 +272,7 @@ const handleSubmit = async (e) => {
           />
           {perfil.curriculum && (
             <a
-              href={`http://localhost:3001/${perfil.curriculum}`}
+              href={`http://localhost:3004/${perfil.curriculum}`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-blue-600 underline mt-2 block"
