@@ -37,7 +37,7 @@ export const updatePerfil = async (
 };
 
 export const updatePerfill = async (formData: FormData) => {
-  const response = await axios.post(`http://localhost:3001/api/upload-cv`, formData, {
+  const response = await axios.post(`https://proyecto-test-personalidad-final-production.up.railway.app/api/upload-cv`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
   return response.data;
