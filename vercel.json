@@ -1,15 +1,15 @@
 {
-  "version": 2,
-  "builds": [
+  "redirects": [
     {
-      "src": "src/index.tsx",
-      "use": "@vercel/static-build"
+      "source": "/reset-password",
+      "destination": "/",
+      "statusCode": 404
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/reset-password",
+      "destination": "/index.html"
     }
   ]
 }

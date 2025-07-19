@@ -11,6 +11,7 @@ const ResetPassword = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+     console.log("Token recibido:", token); // Verifica el token en el frontend
     if (!token) {
       setMessage("Token no válido o expirado.");
     }
