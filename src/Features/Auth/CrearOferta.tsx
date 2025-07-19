@@ -1,5 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { crearOferta, obtenerOfertasParaPostulante } from "./apiOfertas";
+import {
+  actualizarOferta,
+  crearOferta,
+  eliminarOferta,
+  obtenerOfertasParaPostulante,
+} from "./apiOfertas";
 
 interface Oferta {
   id: number;
@@ -24,6 +29,9 @@ const FormularioOfertaFlowbite = () => {
   const [mensaje, setMensaje] = useState("");
   const [ofertas, setOfertas] = useState<Oferta[]>([]);
   const [loading, setLoading] = useState(true);
+  const [ofertaSeleccionada, setOfertaSeleccionada] = useState<Oferta | null>(null);
+  const [modalAbierto, setModalAbierto] = useState(false);
+  const [ofertaAEliminar, setOfertaAEliminar] = useState<Oferta | null>(null);
 
   const creadorId = Number(localStorage.getItem("userId"));
   const roleName = localStorage.getItem("roleName");
@@ -62,79 +70,105 @@ const FormularioOfertaFlowbite = () => {
     e.preventDefault();
 
     try {
-      const result = await crearOferta({
-        ...form,
-        sueldo: parseFloat(form.sueldo),
-        creadorId,
-      });
-
-      if (result.isSuccess) {
-        setMensaje("Oferta creada correctamente.");
-        setForm({ nombre: "", descripcion: "", sueldo: "", modalidad: "" });
-        fetchOfertas();
+      if (ofertaSeleccionada) {
+        await actualizarOferta(ofertaSeleccionada.id, {
+          ...form,
+          sueldo: parseFloat(form.sueldo),
+        });
+        setMensaje("Oferta actualizada correctamente.");
+        setOfertaSeleccionada(null);
       } else {
-        setMensaje(result.message || "No se pudo crear la oferta.");
+        const result = await crearOferta({
+          ...form,
+          sueldo: parseFloat(form.sueldo),
+          creadorId,
+        });
+
+        if (!result.isSuccess) {
+          setMensaje(result.message || "No se pudo crear la oferta.");
+          return;
+        }
+
+        setMensaje("Oferta creada correctamente.");
       }
+
+      setForm({ nombre: "", descripcion: "", sueldo: "", modalidad: "" });
+      setModalAbierto(false);
+      fetchOfertas();
     } catch (error) {
       console.error(error);
-      setMensaje("Error en el servidor.");
+      setMensaje("Error al procesar la solicitud.");
+    }
+  };
+
+  const handleEliminar = (oferta: Oferta) => {
+    setOfertaAEliminar(oferta);
+  };
+
+  const handleEliminarConfirmado = async () => {
+    if (!ofertaAEliminar) return;
+
+    try {
+      await eliminarOferta(ofertaAEliminar.id);
+      setMensaje("Oferta eliminada correctamente.");
+      fetchOfertas();
+    } catch (error) {
+      console.error(error);
+      setMensaje("Error al eliminar la oferta.");
+    } finally {
+      setOfertaAEliminar(null);
+    }
+  };
+
+  const handleActualizar = (id: number) => {
+    const oferta = ofertas.find((o) => o.id === id);
+    if (oferta) {
+      setOfertaSeleccionada(oferta);
+      setForm({
+        nombre: oferta.nombre,
+        descripcion: oferta.descripcion,
+        sueldo: String(oferta.sueldo),
+        modalidad: oferta.modalidad,
+      });
+      setModalAbierto(true);
     }
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-4">
+    <div className="max-w-5xl mx-auto p-4">
+      {/* Formulario Crear/Actualizar */}
       <form className="mb-8" onSubmit={handleSubmit}>
-        <h2 className="text-xl font-bold mb-4">Crear Nueva Oferta</h2>
+        <h2 className="text-xl font-bold mb-4">
+          {ofertaSeleccionada ? "Editar Oferta" : "Crear Nueva Oferta"}
+        </h2>
 
-        <div className="mb-5">
-          <label htmlFor="nombre" className="block mb-2 text-sm font-medium text-gray-900">
-            Nombre del puesto
-          </label>
-          <input
-            type="text"
-            id="nombre"
-            name="nombre"
-            value={form.nombre}
-            onChange={handleChange}
-            required
-            placeholder="Ej: Desarrollador Frontend"
-            className="w-full border border-gray-300 p-2 rounded text-black"
-            style={{ color: "black" }}
-          />
-        </div>
-
-        <div className="mb-5">
-          <label htmlFor="descripcion" className="block mb-2 text-sm font-medium text-gray-900">
-            Descripción
-          </label>
-          <textarea
-            id="descripcion"
-            name="descripcion"
-            value={form.descripcion}
-            onChange={handleChange}
-            required
-            placeholder="Breve descripción del puesto"
-            className="w-full border border-gray-300 p-2 rounded text-black"
-            style={{ color: "black" }}
-          />
-        </div>
-
-        <div className="mb-5">
-          <label htmlFor="sueldo" className="block mb-2 text-sm font-medium text-gray-900">
-            Sueldo
-          </label>
-          <input
-            type="number"
-            id="sueldo"
-            name="sueldo"
-            value={form.sueldo}
-            onChange={handleChange}
-            required
-            placeholder="Ej: 45000"
-            className="w-full border border-gray-300 p-2 rounded text-black"
-            style={{ color: "black" }}
-          />
-        </div>
+        {["nombre", "descripcion", "sueldo"].map((campo) => (
+          <div className="mb-5" key={campo}>
+            <label htmlFor={campo} className="block mb-2 text-sm font-medium text-gray-900">
+              {campo === "nombre" ? "Nombre del puesto" : campo === "descripcion" ? "Descripción" : "Sueldo"}
+            </label>
+            {campo === "descripcion" ? (
+              <textarea
+                id={campo}
+                name={campo}
+                value={form[campo as keyof typeof form]}
+                onChange={handleChange}
+                required
+                className="w-full border border-gray-300 p-2 rounded text-black"
+              />
+            ) : (
+              <input
+                type={campo === "sueldo" ? "number" : "text"}
+                id={campo}
+                name={campo}
+                value={form[campo as keyof typeof form]}
+                onChange={handleChange}
+                required
+                className="w-full border border-gray-300 p-2 rounded text-black"
+              />
+            )}
+          </div>
+        ))}
 
         <div className="mb-5">
           <label htmlFor="modalidad" className="block mb-2 text-sm font-medium text-gray-900">
@@ -147,7 +181,6 @@ const FormularioOfertaFlowbite = () => {
             onChange={handleChange}
             required
             className="w-full border border-gray-300 p-2 rounded text-black"
-            style={{ color: "black" }}
           >
             <option value="">Selecciona una modalidad</option>
             <option value="Remoto">Remoto</option>
@@ -160,14 +193,14 @@ const FormularioOfertaFlowbite = () => {
           type="submit"
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
         >
-          Crear Oferta
+          {ofertaSeleccionada ? "Guardar Cambios" : "Crear Oferta"}
         </button>
 
         {mensaje && <p className="mt-3 text-sm text-red-600">{mensaje}</p>}
       </form>
 
+      {/* Tabla de ofertas */}
       <h3 className="text-lg font-semibold mb-2">Ofertas Creadas</h3>
-
       {loading ? (
         <p className="text-black">Cargando ofertas...</p>
       ) : ofertas.length === 0 ? (
@@ -183,6 +216,7 @@ const FormularioOfertaFlowbite = () => {
                 <th className="px-4 py-2 border-b">Modalidad</th>
                 <th className="px-4 py-2 border-b">Creado por</th>
                 <th className="px-4 py-2 border-b">Fecha</th>
+                <th className="px-4 py-2 border-b">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -194,10 +228,50 @@ const FormularioOfertaFlowbite = () => {
                   <td className="px-4 py-2">{oferta.modalidad}</td>
                   <td className="px-4 py-2">{oferta.creador?.name || "Desconocido"}</td>
                   <td className="px-4 py-2">{new Date(oferta.creadoEn).toLocaleDateString()}</td>
+                  <td className="px-4 py-2 space-x-2">
+                    <button
+                      onClick={() => handleEliminar(oferta)}
+                      className="bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700"
+                    >
+                      Eliminar
+                    </button>
+                    <button
+                      onClick={() => handleActualizar(oferta.id)}
+                      className="bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600"
+                    >
+                      Actualizar
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Modal Confirmación Eliminar */}
+      {ofertaAEliminar && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded shadow-lg max-w-md w-full">
+            <h2 className="text-lg font-semibold mb-4">¿Eliminar esta oferta?</h2>
+            <p className="mb-4">
+              ¿Estás seguro de que deseas eliminar la oferta "{ofertaAEliminar.nombre}"?
+            </p>
+            <div className="flex justify-end space-x-2">
+              <button
+                onClick={() => setOfertaAEliminar(null)}
+                className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleEliminarConfirmado}
+                className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+              >
+                Eliminar
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

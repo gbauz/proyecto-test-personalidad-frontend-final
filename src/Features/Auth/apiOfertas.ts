@@ -129,3 +129,68 @@ export const marcarAprobacion = async (postulacionId: number, estadoAprobacion: 
 
   return res.data;
 };
+
+
+export const obtenerOfertaAplicadaPorUsuario = async (userId: number) => {
+  try {
+    const response = await axios.get(`${BASE_URL_AUTH}/postulaciones/usuario/${userId}`);
+    console.log("Respuesta de la API oferta:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error al obtener la oferta aplicada:", error);
+    return {
+      isSuccess: false,
+      message: "Error al obtener la oferta aplicada",
+      data: null,
+    };
+  }
+};
+
+export const descargarPDFOferta = async (userId: number) => {
+  try {
+    const response = await axios.get(`${BASE_URL_AUTH}/reporte/oferta/${userId}`, {
+      responseType: 'blob',
+    });
+
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'reporte-oferta.pdf');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } catch (error) {
+    console.error("Error al descargar el PDF:", error);
+  }
+};
+
+
+export const obtenerEstadoAprobacion = async (postulanteId: number) => {
+  const res = await axios.get(`${BASE_URL_AUTH}/postulacion/estado/${postulanteId}`);
+  return res.data.data; // contiene { id, estadoAprobacion, fechaAprobacion }
+};
+
+export const actualizarOferta = async (id: number, datosActualizados: {
+  nombre: string;
+  descripcion: string;
+  sueldo: number;
+  modalidad: string;
+}) => {
+  try {
+    const res = await axios.put(`${BASE_URL_AUTH}/ofertas/${id}`, datosActualizados);
+    return res.data.data; // Retorna la oferta actualizada
+  } catch (error) {
+    console.error('Error al actualizar la oferta:', error);
+    throw error;
+  }
+};
+
+export const eliminarOferta = async (id: number) => {
+  try {
+    const res = await axios.delete(`${BASE_URL_AUTH}/ofertas/${id}`);
+    return res.data.data; // Retorna la oferta eliminada si deseas usarla
+  } catch (error) {
+    console.error('Error al eliminar la oferta:', error);
+    throw error;
+  }
+};

@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { fetchPerfilByUserId, updatePerfil } from "./apiPerfil";
-import { registerUser, fetchUserBasicInfo } from './apiRegister';
+import { fetchPerfilByUserId, updatePerfil, updatePerfill } from "./apiPerfil";
+import { fetchUserBasicInfo } from "./apiRegister";
 
- 
 interface Perfil {
   userId: number;
   cedula: string;
@@ -34,90 +33,133 @@ const Perfil = () => {
   const userIdStr = localStorage.getItem("userId");
   const userId = userIdStr ? Number(userIdStr) : null;
 
-useEffect(() => {
+  useEffect(() => {
+    if (!userId) {
+      setError("Debes iniciar sesión para acceder al perfil");
+      return;
+    }
+
+
+    
+
+    setLoading(true);
+    fetchPerfilByUserId(userId)
+      .then(async ({ isSuccess, data }) => {
+        if (isSuccess && data) {
+          console.log("✅ Perfil obtenido:", data);
+          setPerfil(data);
+        } else {
+          const userInfo = await fetchUserBasicInfo(userId);
+          console.log("ℹ️ Usuario sin perfil completo, cargando datos básicos:", userInfo);
+          setPerfil(prev => ({
+            ...prev,
+            userId,
+            name: userInfo.name,
+            email: userInfo.email,
+          }));
+        }
+      })
+      .catch((err) => {
+        console.error("❌ Error al cargar perfil:", err);
+        setError("Error al cargar perfil");
+      })
+      .finally(() => setLoading(false));
+  }, [userId]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+
+    if (name === "cedula") {
+      const numericValue = value.replace(/\D/g, "");
+      if (numericValue.length <= 10) {
+        setPerfil(prev => ({ ...prev, cedula: numericValue }));
+      }
+    } else {
+      setPerfil(prev => ({ ...prev, [name]: value }));
+    }
+  };
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setError('');
+
   if (!userId) {
-    setError("Debes iniciar sesión para acceder al perfil");
+    setError('UserId no definido, inicia sesión primero');
+    return;
+  }
+
+  if (perfil.cedula.length !== 10) {
+    setError('La cédula debe tener exactamente 10 números');
     return;
   }
 
   setLoading(true);
+  try {
+    let fotoUrl = perfil.fotoPerfil;
 
-  fetchPerfilByUserId(userId)
-    .then(async ({ isSuccess, data }) => {
-      if (isSuccess && data) {
-        setPerfil(data);
-      } else {
-        const userInfo = await fetchUserBasicInfo(userId);
-        setPerfil(prev => ({
-          ...prev,
-          userId,
-          name: userInfo.name,
-          email: userInfo.email,
-        }));
-      }
-    })
-    .catch(() => setError("Error al cargar perfil"))
-    .finally(() => setLoading(false));
-}, [userId]);
+    // Subir Foto de Perfil
+    if (fotoPerfilFile) {
+      const fotoForm = new FormData();
+      fotoForm.append('file', fotoPerfilFile);
+      fotoForm.append('userId', userId.toString());
+      fotoForm.append('tipoArchivo', 'fotoPerfil');
 
-const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-  const { name, value } = e.target;
+      console.log('📤 Subiendo foto de perfil:', {
+        nombre: fotoPerfilFile.name,
+        tamaño: fotoPerfilFile.size,
+      });
 
-  if (name === "cedula") {
-    // Solo permitir números y máximo 10 caracteres
-    const numericValue = value.replace(/\D/g, ""); // elimina letras
-    if (numericValue.length <= 10) {
-      setPerfil(prev => ({ ...prev, cedula: numericValue }));
+      const uploadResult = await updatePerfill(fotoForm);
+      console.log('✅ Foto subida con éxito:', uploadResult);
+      fotoUrl = uploadResult.url || uploadResult.secure_url;
+
+      // Guardar la URL de la foto de perfil en localStorage
+      localStorage.setItem('fotoPerfil', fotoUrl);  // Sincroniza con localStorage
     }
-  } else {
-    setPerfil(prev => ({ ...prev, [name]: value }));
+
+    // Preparar y Enviar FormData con info del perfil
+    const formData = new FormData();
+    formData.append('userId', userId.toString());
+    formData.append('cedula', perfil.cedula);
+    formData.append('sexo', perfil.sexo);
+    formData.append('pais', perfil.pais);
+    formData.append('ciudad', perfil.ciudad);
+    formData.append('name', perfil.name || '');
+    formData.append('email', perfil.email || '');
+
+    if (curriculumFile) {
+      formData.append('curriculum', curriculumFile);
+      console.log('📄 Adjuntando CV:', curriculumFile.name);
+    }
+
+    if (fotoUrl) {
+      formData.append('fotoPerfil', fotoUrl);
+      console.log('🖼️ URL de fotoPerfil agregada al form:', fotoUrl);
+    }
+
+    const res = await updatePerfil(formData);
+    console.log('✅ Perfil actualizado en el backend:', res);
+    alert(res.message || 'Perfil actualizado correctamente');
+    const { isSuccess, data } = await fetchPerfilByUserId(userId);
+    if (isSuccess && data) {
+      setPerfil(data);
+    }
+  } catch (err) {
+    console.error('❌ Error al actualizar perfil:', err);
+    setError('Error al actualizar perfil');
+  } finally {
+    setLoading(false);
   }
 };
 
 
-
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-
-    if (!userId) {
-      setError("UserId no definido, inicia sesión primero");
-      return;
-    }
-      if (perfil.cedula.length !== 10) {
-    setError("La cédula debe tener exactamente 10 números");
-    return;
-  }
-
-    setLoading(true);
-    try {
-      const formData = new FormData();
-      formData.append("userId", userId.toString());
-      formData.append("cedula", perfil.cedula);
-      formData.append("sexo", perfil.sexo);
-      formData.append("pais", perfil.pais);
-      formData.append("ciudad", perfil.ciudad);
-      formData.append("name", perfil.name || "");
-      formData.append("email", perfil.email || "");
-      if (fotoPerfilFile) formData.append("fotoPerfil", fotoPerfilFile);
-      if (curriculumFile) formData.append("curriculum", curriculumFile);
-
-      const res = await updatePerfil(formData);
-      alert(res.message);
-    } catch (err) {
-      console.error(err);
-      setError("Error al actualizar perfil");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="max-w-md mx-auto p-6 bg-white rounded shadow">
       <h2 className="text-xl font-semibold mb-4 text-center text-black">Editar Perfil</h2>
       {error && <p className="text-red-500 mb-4">{error}</p>}
       {loading && <p className="mb-4 text-center">Cargando...</p>}
+
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Nombre */}
         <div>
@@ -128,7 +170,7 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
             value={perfil.name || ""}
             onChange={handleChange}
             required
-            className="w-full px-3 py-2 border rounded border-gray-300 text-black"
+            className="w-120 h-12 px-3 py-2 border rounded border-gray-310 text-black"
           />
         </div>
 
@@ -141,27 +183,22 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
             value={perfil.email || ""}
             onChange={handleChange}
             required
-            className="w-full px-3 py-2 border rounded border-gray-300 text-black"
+            className="w-120 h-12 px-3 py-2 border rounded border-gray-310 text-black"
           />
         </div>
 
         {/* Cédula */}
-        {/* Cédula */}
-<div>
-  <label className="block mb-1 font-semibold text-black">Cédula</label>
-  <input
-    type="text"
-    name="cedula"
-    value={perfil.cedula}
-    onChange={handleChange}
-    required
-    className="w-full px-3 py-2 border rounded border-gray-300 text-black"
-  />
-  {error.includes("cédula") && (
-    <p className="text-red-500 text-sm mt-1">La cédula debe tener exactamente 10 números</p>
-  )}
-</div>
-
+        <div>
+          <label className="block mb-1 font-semibold text-black">Cédula</label>
+          <input
+            type="text"
+            name="cedula"
+            value={perfil.cedula}
+            onChange={handleChange}
+            required
+            className="w-120 h-12 px-3 py-2 border rounded border-gray-310 text-black"
+          />
+        </div>
 
         {/* Sexo */}
         <div>
@@ -171,7 +208,7 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
             value={perfil.sexo}
             onChange={handleChange}
             required
-            className="w-full px-3 py-2 border rounded border-gray-300 text-black"
+            className="w-120 h-12 px-3 py-2 border rounded border-gray-310 text-black"
           >
             <option value="">Seleccione</option>
             <option value="M">Masculino</option>
@@ -189,7 +226,7 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
             value={perfil.pais}
             onChange={handleChange}
             required
-            className="w-full px-3 py-2 border rounded border-gray-300 text-black"
+            className="w-120 h-12 px-3 py-2 border rounded border-gray-310 text-black"
           />
         </div>
 
@@ -202,11 +239,11 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
             value={perfil.ciudad}
             onChange={handleChange}
             required
-            className="w-full px-3 py-2 border rounded border-gray-300 text-black"
+            className="w-120 h-12 px-3 py-2 border rounded border-gray-310 text-black"
           />
         </div>
 
-        {/* Foto de perfil */}
+        {/* Foto de Perfil */}
         <div>
           <label className="block mb-1 font-semibold text-black">Foto de Perfil</label>
           <input
@@ -217,7 +254,7 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
           />
           {perfil.fotoPerfil && (
             <img
-              src={`${import.meta.env.VITE_API_URL}/${perfil.fotoPerfil}`}
+              src={perfil.fotoPerfil}
               alt="Foto de perfil"
               className="mt-2 h-20 w-20 object-cover rounded-full"
             />
@@ -235,7 +272,7 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
           />
           {perfil.curriculum && (
             <a
-              href={`${import.meta.env.VITE_API_URL}/${perfil.curriculum}`}
+              href={`http://localhost:3001/${perfil.curriculum}`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-blue-600 underline mt-2 block"

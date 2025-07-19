@@ -1,23 +1,23 @@
 import React, { useEffect, useState } from "react";
-import { obtenerTestsCompletados, TestCompletado } from "./api";
-
-console.log( )
+import {
+  obtenerTestsCompletados,
+  TestCompletado,
+} from "./api";
+import { obtenerOfertaAplicadaPorUsuario } from "../Auth/apiOfertas";
 
 const TestList = () => {
   const [data, setData] = useState<TestCompletado[]>([]);
   const [loading, setLoading] = useState(true);
-console.log(data[0])
   const [nombre, setNombre] = useState("");
   const [personalidad, setPersonalidad] = useState("");
   const [desde, setDesde] = useState("");
   const [hasta, setHasta] = useState("");
-
+  const [oferta, setOferta] = useState(null);
   const rol = localStorage.getItem("rolName");
-  const userId = localStorage.getItem("userId");
-
+  const userId = Number(localStorage.getItem("userId"));
   const isPostulante = rol === "Postulante";
 
- 
+  const [ofertasPorUsuario, setOfertasPorUsuario] = useState<Record<number, any>>({});
 
   const aplicarFiltros = (reset = false) => {
     const filtros = reset
@@ -32,44 +32,57 @@ console.log(data[0])
 
     setLoading(true);
     obtenerTestsCompletados(filtros)
-      .then((res) => {
+      .then(async (res) => {
         if (res.isSuccess && res.data) {
           setData(res.data);
+
+          // Cargar postulaciones por usuario (solo una por cada uno)
+          const usuariosUnicos = Array.from(
+            new Set(res.data.map((t) => t.usuariotest?.user?.id))
+          ).filter(Boolean);
+
+          const ofertasPromises = usuariosUnicos.map((id) =>
+            obtenerOfertaAplicadaPorUsuario(id).then((res) => ({
+              id,
+              oferta: res?.data,
+            }))
+          );
+
+          const ofertas = await Promise.all(ofertasPromises);
+          const mapaOfertas = ofertas.reduce((acc, curr) => {
+            acc[curr.id] = curr.oferta;
+            return acc;
+          }, {} as Record<number, any>);
+
+          setOfertasPorUsuario(mapaOfertas);
         }
       })
-      .catch((error) => {
-        console.error("Error al aplicar filtros:", error);
-      })
+      .catch((error) => console.error("Error al obtener tests:", error))
       .finally(() => setLoading(false));
   };
 
   useEffect(() => {
+    if (userId && isPostulante) {
+      obtenerOfertaAplicadaPorUsuario(userId).then((res) => {
+        setOferta(res?.data || null);
+      });
+    }
+  }, [userId]);
+
+  useEffect(() => {
     aplicarFiltros();
   }, []);
+
+  const verPDFEnOtraPestana = (idUsuarioTest: number) => {
+    const url = `${import.meta.env.VITE_API_URL}/test/generar-pdf/${idUsuarioTest}`;
+    window.open(url, "_blank");
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-6">
       <h1 className="text-4xl font-bold text-center mb-10 text-gray-900">
         Tests Completados
       </h1>
-{/* <a
-  href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(`${import.meta.env.VITE_API_URL}/test/resultado`)}`}
-  target="_blank"
-  rel="noopener noreferrer"
-  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
->
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    fill="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path d="M4.98 3.5C4.98 4.88 3.88 6 2.5 6S0 4.88 0 3.5 1.12 1 2.5 1 4.98 2.12 4.98 3.5zM.04 8.98h4.92V24H.04V8.98zM7.98 8.98h4.72v2.05h.07c.66-1.24 2.27-2.55 4.67-2.55 5 0 5.92 3.29 5.92 7.56V24h-4.92v-7.9c0-1.89-.03-4.32-2.63-4.32-2.64 0-3.05 2.06-3.05 4.18V24H7.98V8.98z" />
-  </svg>
-  Compartir en LinkedIn
-</a> */}
-
 
       {!isPostulante && (
         <form
@@ -149,7 +162,6 @@ console.log(data[0])
 
                 <div className="mb-3">
                   <p className="text-gray-700 text-xs whitespace-pre-line break-words">
-
                     <span className="font-medium">Descripción:</span>{" "}
                     {test.personalidades?.descripcion || "Sin descripción"}
                   </p>
@@ -165,6 +177,19 @@ console.log(data[0])
                     {test.usuariotest?.user?.email || "No disponible"}
                   </p>
                   <p>
+                    <span className="font-semibold">Puestos recomendados:</span>{" "}
+                    {test.personalidades?.puestosRecomendados?.length > 0
+                      ? test.personalidades.puestosRecomendados.join(", ")
+                      : "Sin descripción"}
+                  </p>
+                  <p>
+                    <span className="font-semibold">Oferta postulado:</span>{" "}
+                    {
+                      ofertasPorUsuario[test.usuariotest?.user?.id]?.nombre ||
+                      "No disponible"
+                    }
+                  </p>
+                  <p>
                     <span className="font-semibold">Fecha:</span>{" "}
                     {test.createdAt
                       ? new Date(test.createdAt).toLocaleDateString()
@@ -175,6 +200,13 @@ console.log(data[0])
                 <div className="mt-3 text-[11px] text-gray-400">
                   ID Test: {test.id} | ID Usuario Test: {test.idUsuarioTest}
                 </div>
+
+                <button
+                  onClick={() => verPDFEnOtraPestana(test.idUsuarioTest)}
+                  className="mt-4 w-full bg-green-600 text-white py-2 rounded-md text-xs hover:bg-green-700 transition"
+                >
+                  Ver PDF
+                </button>
               </div>
             ))}
         </div>

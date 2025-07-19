@@ -8,11 +8,11 @@ const faqs = [
   },
   {
     title: "Realiza una prueba gratuita / Solicita una demo",
-    content: "Humanize Image",
+    content: "Descubre cómo nuestra plataforma puede transformar tu proceso de selección. ¡Haz una prueba gratuita o solicita una demo personalizada hoy mismo!",
   },
   {
     title: "Características poderosas para potenciar tus decisiones de Recursos Humanos",
-    content: "",
+    content: "Optimiza tus procesos con herramientas inteligentes que te ayudan a seleccionar, evaluar y contratar al mejor talento de forma rápida y efectiva.",
   },
   {
     title: "¿Por qué MBTI Insight?",
@@ -41,7 +41,7 @@ const faqs = [
   },
   {
     title: "Prueba Crackle gratis",
-    content: "Imagen de promoción",
+    content:"Descubre todo el potencial de nuestra plataforma sin compromiso. ¡Empieza gratis hoy mismo!",
   },
   {
     title: "¿Cómo funciona la sincronización del talento?",

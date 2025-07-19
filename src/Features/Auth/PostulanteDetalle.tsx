@@ -41,7 +41,7 @@ const PostulanteDetalle: React.FC<PostulanteDetalleProps> = ({ nombre, fotoPerfi
           <h2 className="text-xl font-bold text-gray-800">{nombre}</h2>
           {perfil?.curriculum ? (
             <a
-              href={`${import.meta.env.VITE_API_URL}/${perfil.curriculum}`}
+              href={`http://localhost:3001/${perfil.curriculum}`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-blue-500 text-sm hover:underline"

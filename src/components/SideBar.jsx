@@ -20,13 +20,15 @@ const SideBar = ({ isOpen }) => {
         ? "bg-orange-100 text-orange-700"
         : "hover:bg-orange-50 hover:text-orange-600 text-gray-700"
     }`;
-
-  return (
-    <aside
-      className={`fixed top-0 left-0 z-40 w-64 h-screen bg-white border-r border-gray-200 text-gray-800 shadow-lg transition-transform duration-300 ease-in-out
-      ${isOpen ? "translate-x-0" : "-translate-x-full"}
-      lg:static lg:translate-x-0`}
-    >
+return (
+  <aside
+    className={`fixed top-0 left-0 z-40 w-64 min-h-screen h-full bg-white border-r border-gray-200 text-gray-800 shadow-lg transition-transform duration-300 ease-in-out
+    flex flex-col justify-between
+    ${isOpen ? "translate-x-0" : "-translate-x-full"}
+    lg:static lg:translate-x-0`}
+  >
+    {/* TOP: Logo y navegación */}
+    <div>
       <div className="flex flex-col items-center py-6 border-b border-gray-100">
         <img
           src="https://i.ibb.co/WpcSs5vm/imagen-2025-05-11-012001084.png"
@@ -38,15 +40,14 @@ const SideBar = ({ isOpen }) => {
 
       <nav className="mt-6 px-4">
         <ul className="space-y-2 text-sm">
-            {rol === "Postulante" && (
-          <li>
-            <Link to="/dashboard" className={navItemClass("/dashboard")}>
-              <Home className="w-5 h-5" />
-              <span>Inicio</span>
-            </Link>
-          </li>
+          {rol === "Postulante" && (
+            <li>
+              <Link to="/dashboard" className={navItemClass("/dashboard")}>
+                <Home className="w-5 h-5" />
+                <span>Inicio</span>
+              </Link>
+            </li>
           )}
-          
 
           {rol === "Recursos Humanos" && (
             <>
@@ -61,7 +62,7 @@ const SideBar = ({ isOpen }) => {
                   <FilePlus className="w-5 h-5" />
                   <span>Crear Ofertas</span>
                 </Link>
-              </li>             
+              </li>
               <li>
                 <Link to="/faq" className={navItemClass("/faq")}>
                   <FileQuestion className="w-5 h-5" />
@@ -74,63 +75,49 @@ const SideBar = ({ isOpen }) => {
                   <span>Vacantes</span>
                 </Link>
               </li>
-                <li>
-            <Link to="/verTest" className={navItemClass("/verTest")}>
-              <BarChart2 className="w-5 h-5" />
-              <span>Ver Test</span>
-            </Link>
-            </li> 
-              {/* <li>
-                <button
-                  onClick={() => {
-                    localStorage.clear();
-                    window.location.href = "/login";
-                  }}
-                  className={`${navItemClass("")} w-full text-left`}
-                >
-                  <LogOut className="w-5 h-5" />
-                  <span>Cerrar sesión</span>
-                </button>
-              </li> */}
+              <li>
+                <Link to="/verTest" className={navItemClass("/verTest")}>
+                  <BarChart2 className="w-5 h-5" />
+                  <span>Ver Test</span>
+                </Link>
+              </li>
             </>
           )}
-         
-          
+
           {rol === "Postulante" && (
-            <>  
-          <li>
-            <Link to="/perfil" className={navItemClass("/report")}>
-              <BarChart2 className="w-5 h-5" />
-              <span>Mi perfil</span>
-            </Link>
-            </li>
-            <li>
-            <Link to="/faq" className={navItemClass("/faq")}>
-              <BarChart2 className="w-5 h-5" />
-              <span>FAQ</span>
-            </Link>
-          </li>
-             <li>
-              {localStorage.getItem("testCompleted") === "true" && (
-            <Link to="/ofertaspostulante" className={navItemClass("/ofertaspostulante")}>
-              <BarChart2 className="w-5 h-5" />
-              <span>Mis Postulaciones</span>
-            </Link>
-            )}
-            </li>
-            <li>
-              {localStorage.getItem("testCompleted") === "true" && (
-            <Link to="/verTest" className={navItemClass("/verTest")}>
-              <BarChart2 className="w-5 h-5" />
-              <span>Ver Test</span>
-            </Link>
-            )}
-            </li>
-          </>
+            <>
+              <li>
+                <Link to="/perfil" className={navItemClass("/report")}>
+                  <BarChart2 className="w-5 h-5" />
+                  <span>Mi perfil</span>
+                </Link>
+              </li>
+              <li>
+                <Link to="/faq" className={navItemClass("/faq")}>
+                  <BarChart2 className="w-5 h-5" />
+                  <span>FAQ</span>
+                </Link>
+              </li>
+              {testCompletado === "true" && (
+                <>
+                  <li>
+                    <Link to="/ofertaspostulante" className={navItemClass("/ofertaspostulante")}>
+                      <BarChart2 className="w-5 h-5" />
+                      <span>Mis Postulaciones</span>
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/verTest" className={navItemClass("/verTest")}>
+                      <BarChart2 className="w-5 h-5" />
+                      <span>Ver Test</span>
+                    </Link>
+                  </li>
+                </>
+              )}
+            </>
           )}
 
-
-           {rol === "Administrador" && (
+          {rol === "Administrador" && (
             <>
               <li>
                 <Link to="/dashboardAdmin" className={navItemClass("/dashboardAdmin")}>
@@ -150,19 +137,18 @@ const SideBar = ({ isOpen }) => {
                   <span>Consultar Usuarios</span>
                 </Link>
               </li>
-            
             </>
           )}
-
-          
         </ul>
       </nav>
+    </div>
 
-      <div className="absolute bottom-4 left-0 w-full px-6 text-xs text-center text-gray-400">
-        © 2025 Humanalyze
-      </div>
-    </aside>
-  );
-};
+    {/* BOTTOM: Footer fijo */}
+    <div className="px-6 py-4 text-xs text-center text-gray-400">
+      © 2025 Humanalyze
+    </div>
+  </aside>
+);
+}
 
 export default SideBar;

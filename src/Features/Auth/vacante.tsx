@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ChevronDown, ChevronUp, MoreVertical } from 'lucide-react';
 import { fetchPerfilByUserId } from '../Auth/apiPerfil';
 import { fetchUsuarios, Usuario , } from './apiUsuarios';
-import { marcarValidacion, obtenerOfertasParaPostulante, verificarTestCompletado , marcarAprobacion} from '../Auth/apiOfertas';
+import { marcarValidacion, obtenerOfertasParaPostulante, verificarTestCompletado , marcarAprobacion, obtenerEstadoAprobacion} from '../Auth/apiOfertas';
 import { obtenerTestsCompletados ,TestCompletado  } from '../Preguntas/api';
 
 
@@ -27,135 +27,159 @@ interface PostulanteDetalleProps {
   onFinalizar: () => void;
 }
 
-const PostulanteDetalle: React.FC<PostulanteDetalleProps> = ({ nombre, fotoPerfil, postulanteId,
-onFinalizar }) => {
+const PostulanteDetalle: React.FC<PostulanteDetalleProps> = ({
+  nombre,
+  fotoPerfil,
+  postulanteId,
+  onFinalizar,
+}) => {
   const [curriculumUrl, setCurriculumUrl] = useState('');
-
-   const [mensaje, setMensaje] = useState('');
+  const [mensaje, setMensaje] = useState('');
   const [testCompletado, setTestCompletado] = useState<TestCompletado | null>(null);
   const [loading, setLoading] = useState(true);
+  const [estadoAprobacion, setEstadoAprobacion] = useState<string | null>(null);
 
- const manejarAprobacion = async () => {
-  try {
-    await marcarAprobacion(postulanteId, "ACEPTADA"); // ✅ Estado correcto
-    setMensaje('✅ La solicitud fue aprobada.');
-  } catch (error) {
-    
-    setMensaje('❌ EL Usuario no tiene postulaciones .');
-  } finally {
-    setTimeout(onFinalizar, 2000); // Regresa después de 2 segundos
-  }
-};
-
-const manejarRechazo = async () => {
-  try {
-    await marcarAprobacion(postulanteId, "RECHAZADA"); // ✅ Estado correcto
-    setMensaje('❌ La solicitud fue rechazada.');
-  } catch (error) {
-    console.error('Error al rechazar solicitud:', error);
-    setMensaje('❌ Error al rechazar la solicitud.');
-  } finally {
-    setTimeout(onFinalizar, 2000); // Regresa después de 2 segundos
-  }
-};
-
-
-
-  useEffect(() => {
-  const cargarDatos = async () => {
+  const manejarAprobacion = async () => {
     try {
-      // Obtener test completado
-      const res = await obtenerTestsCompletados({ idUsuario: postulanteId });
-      if (res.isSuccess && res.data.length > 0) {
-        setTestCompletado(res.data[0]);
-      }
-
-      // Obtener perfil y CV
-      const perfilRes = await fetchPerfilByUserId(postulanteId);
-      if (perfilRes.isSuccess && perfilRes.data?.curriculum) {
-        const url = `${import.meta.env.VITE_API_URL}/${perfilRes.data.curriculum.replace(/\\/g, '/')}`;
-        setCurriculumUrl(url);
-      }
+      await marcarAprobacion(postulanteId, 'ACEPTADA');
+      setEstadoAprobacion('ACEPTADA');
+      setMensaje('✅ La solicitud fue aprobada.');
     } catch (error) {
-      console.error('Error cargando datos del postulante:', error);
+      setMensaje('❌ El usuario no tiene postulaciones.');
     } finally {
-      setLoading(false);
+      setTimeout(onFinalizar, 2000);
     }
   };
 
-  cargarDatos();
-}, [postulanteId]);
+  const manejarRechazo = async () => {
+    try {
+      await marcarAprobacion(postulanteId, 'RECHAZADA');
+      setEstadoAprobacion('RECHAZADA');
+      setMensaje('❌ La solicitud fue rechazada.');
+    } catch (error) {
+      console.error('Error al rechazar solicitud:', error);
+      setMensaje('❌ Error al rechazar la solicitud.');
+    } finally {
+      setTimeout(onFinalizar, 2000);
+    }
+  };
+
+  useEffect(() => {
+    const cargarDatos = async () => {
+      try {
+        const estado = await obtenerEstadoAprobacion(postulanteId);
+        setEstadoAprobacion(estado?.estadoAprobacion || null);
+
+        const res = await obtenerTestsCompletados({ idUsuario: postulanteId });
+        if (res.isSuccess && res.data.length > 0) {
+          setTestCompletado(res.data[0]);
+        }
+
+        const perfilRes = await fetchPerfilByUserId(postulanteId);
+        if (perfilRes.isSuccess && perfilRes.data?.curriculum) {
+          const url = `http://localhost:3001/${perfilRes.data.curriculum.replace(/\\/g, '/')}`;
+          setCurriculumUrl(url);
+        }
+      } catch (error) {
+        console.error('Error cargando datos del postulante:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    cargarDatos();
+  }, [postulanteId]);
+
+  const estaDeshabilitado = estadoAprobacion === 'ACEPTADA' || estadoAprobacion === 'RECHAZADA';
+
+  const mostrarEstado = () => {
+    switch (estadoAprobacion) {
+      case 'ACEPTADA':
+        return <span className="text-green-700 font-semibold">✅ Aprobada</span>;
+      case 'RECHAZADA':
+        return <span className="text-red-700 font-semibold">❌ Rechazada</span>;
+      default:
+        return <span className="text-gray-600 font-medium">⏳ Pendiente</span>;
+    }
+  };
 
   return (
     <div className="max-w-xl mx-auto bg-white p-6 rounded-xl shadow-md mt-10">
-    <div className="flex items-center space-x-4 mb-6">
-      {fotoPerfil ? (
-        <img
-          src={fotoPerfil}
-          alt={nombre}
-          className="w-24 h-24 rounded-full object-cover border border-gray-300"
-        />
-      ) : (
-        <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-sm font-medium border border-gray-300">
-          Sin foto
-        </div>
-      )}
-   {curriculumUrl ? (
-<button
-  onClick={async () => {
-    try {
-      // 1. Validar documento en el backend
-      await marcarValidacion(postulanteId);
-      // 2. Abrir el CV
-      window.open(curriculumUrl, '_blank');
-    } catch (error) {
-      console.error('Error al validar documento:', error);
-    }
-  }}
-  className="text-blue-500 text-sm hover:underline"
->
-  Ver CV
-</button>
-) : (
-  <span className="text-gray-400 text-sm">CV no disponible</span>
-)}
-
+      <div className="flex items-center space-x-4 mb-6">
+        {fotoPerfil ? (
+          <img
+            src={fotoPerfil}
+            alt={nombre}
+            className="w-24 h-24 rounded-full object-cover border border-gray-300"
+          />
+        ) : (
+          <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-sm font-medium border border-gray-300">
+            Sin foto
+          </div>
+        )}
+        {curriculumUrl ? (
+          <button
+            onClick={async () => {
+              try {
+                await marcarValidacion(postulanteId);
+                window.open(curriculumUrl, '_blank');
+              } catch (error) {
+                console.error('Error al validar documento:', error);
+              }
+            }}
+            className="text-blue-500 text-sm hover:underline"
+          >
+            Ver CV
+          </button>
+        ) : (
+          <span className="text-gray-400 text-sm">CV no disponible</span>
+        )}
       </div>
 
       <div>
         <h3 className="text-xl font-semibold text-gray-700 mb-2">Resultados del Test</h3>
-
         {loading ? (
           <p className="text-gray-600">Cargando resultados...</p>
         ) : testCompletado ? (
           <>
             <p className="text-sm text-gray-700 mb-2">
-  Tipo de personalidad: {testCompletado.personalidades?.nombre || 'No definido'}
-</p>
-<p className="text-sm text-gray-700 italic mb-2">
-  Descripción: {testCompletado.personalidades?.descripcion || 'Sin descripción'}
-</p>
-<p className="text-sm text-gray-700 italic mb-2">
-  Palabras clave: {testCompletado.personalidades?.keywords || 'No definidas'}
-</p>
+              Tipo de personalidad: {testCompletado.personalidades?.nombre || 'No definido'}
+            </p>
+            <p className="text-sm text-gray-700 italic mb-2">
+              Descripción: {testCompletado.personalidades?.descripcion || 'Sin descripción'}
+            </p>
+            <p className="text-sm text-gray-700 italic mb-2">
+              Palabras clave: {testCompletado.personalidades?.keywords || 'No definidas'}
+            </p>
           </>
         ) : (
           <p className="text-gray-600">Este postulante aún no tiene resultados registrados.</p>
         )}
       </div>
 
-  <div className="mt-6">
+      <div className="mt-6">
+        <div className="mb-3">
+          <span className="text-sm text-gray-700">Estado actual: </span>
+          {mostrarEstado()}
+        </div>
+
         <div className="flex justify-between">
           <button
             onClick={manejarAprobacion}
-            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
+            className={`px-4 py-2 rounded text-white transition ${
+              estaDeshabilitado ? 'bg-gray-300 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'
+            }`}
+            disabled={estaDeshabilitado}
           >
             Aceptar aprobación
           </button>
 
           <button
             onClick={manejarRechazo}
-            className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition"
+            className={`px-4 py-2 rounded text-white transition ${
+              estaDeshabilitado ? 'bg-gray-300 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'
+            }`}
+            disabled={estaDeshabilitado}
           >
             Rechazar aprobación
           </button>
@@ -170,7 +194,6 @@ const manejarRechazo = async () => {
     </div>
   );
 };
-
 const JobAccordion: React.FC = () => {
  
   const [openIndex, setOpenIndex] = useState<string | null>(null);
@@ -216,23 +239,30 @@ const JobAccordion: React.FC = () => {
         const filtrados: Usuario[] = [];
         const fotos: { [userId: number]: string } = {};
 
-        await Promise.all(
-          candidatos.map(async (post) => {
-            try {
-              const haHechoTest = await verificarTestCompletado(post.id);
+      await Promise.all(
+  candidatos.map(async (post) => {
+    try {
+      const haHechoTest = await verificarTestCompletado(post.id);
 
-              if (haHechoTest) {
-                filtrados.push(post);
-                const perfilRes = await fetchPerfilByUserId(post.id);
-                if (perfilRes.isSuccess && perfilRes.data?.fotoPerfil) {
-                  fotos[post.id] = `${import.meta.env.VITE_API_URL}/${perfilRes.data.fotoPerfil}`;
-                }
-              }
-            } catch (err) {
-              console.warn(`Error verificando test o foto para usuario ${post.name} (${post.id}):`, err);
-            }
-          })
-        );
+      if (haHechoTest) {
+        filtrados.push(post);
+        const perfilRes = await fetchPerfilByUserId(post.id);
+        
+        // Verificamos si la respuesta es exitosa y si la foto de perfil existe
+        if (perfilRes.isSuccess && perfilRes.data?.fotoPerfil) {
+          // Asignamos la URL de la foto de perfil a fotos[post.id]
+          fotos[post.id] = perfilRes.data.fotoPerfil;
+        } else {
+          // Si no hay foto de perfil, podemos usar una imagen predeterminada (si quieres)
+          fotos[post.id] = 'https://res.cloudinary.com/camilo-app/image/upload/v1752945795/cv/8b920fe7-dc78-40be-9b33-d8d98d9b2778.png';
+        }
+      }
+    } catch (err) {
+      console.warn(`Error verificando test o foto para usuario ${post.name} (${post.id}):`, err);
+    }
+  })
+);
+
 
         setPostulantes(filtrados);
         setFotosPostulantes(fotos);
@@ -323,7 +353,7 @@ const JobAccordion: React.FC = () => {
                           onClick={() => setPostulanteSeleccionado(p)}
                           className="mt-3 text-xs text-blue-600 hover:underline font-medium"
                         >
-                          Ver Postulación
+                          Ver Postulación....
                         </button>
                       </div>
                     ))}
@@ -373,6 +403,7 @@ const JobAccordion: React.FC = () => {
         const fotoUrl = cand.perfil?.fotoPerfil
           ? `${import.meta.env.VITE_API_URL}/${cand.perfil.fotoPerfil.replace(/\\/g, '/')}`
           : '';
+          console.log(`Foto de ${cand.name}: ${fotoUrl}`);
         return (
           <div
             key={postu.id}

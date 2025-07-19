@@ -42,6 +42,7 @@ export interface ResultadoTestMBTI {
   personalidad: string;
   descripcion: string;
   keywords: string;
+ 
 }
 
 export interface SelectedAnswer {
@@ -62,6 +63,8 @@ export interface TestCompletado {
     keywords: string;
     descripcion: string;
     isActive: boolean;
+    puestosRecomendados?: string[];  
+
   };
   usuariotest: {
     id: number;
@@ -142,4 +145,26 @@ export const enviarTestRespuestas = async (
 export const verificarTestPendiente = async (idUsuario: number) => {
   const response = await axios.get(`${VER_TEST_URL_API}/verificar-pendiente/${idUsuario}`);
   return response.data;
+};
+
+
+
+
+export const obtenerPuestosRecomendados = async (personalidadId?: number) => {
+  try {
+    const url = personalidadId
+      ? `${VER_TEST_URL_API}/personalidades/${personalidadId}`
+      : `${VER_TEST_URL_API}/personalidades`;
+
+    const response = await axios.get(url);
+
+    if (response.data?.isSuccess) {
+      return response.data.data;
+    }
+
+    return null;
+  } catch (error) {
+    console.error("Error al obtener puestos recomendados:", error);
+    throw error;
+  }
 };
