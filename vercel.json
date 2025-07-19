@@ -1,14 +1,11 @@
 {
-  "redirects": [
-    {
-      "source": "/reset-password",
-      "destination": "/",
-      "statusCode": 404
-    }
-  ],
   "rewrites": [
     {
       "source": "/reset-password",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/:path*",
       "destination": "/index.html"
     }
   ]
