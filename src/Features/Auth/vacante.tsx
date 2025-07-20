@@ -77,7 +77,7 @@ const PostulanteDetalle: React.FC<PostulanteDetalleProps> = ({
 
         const perfilRes = await fetchPerfilByUserId(postulanteId);
         if (perfilRes.isSuccess && perfilRes.data?.curriculum) {
-          const url = `http://localhost:3001/${perfilRes.data.curriculum.replace(/\\/g, '/')}`;
+          const url = `http://localhost:3003/${perfilRes.data.curriculum.replace(/\\/g, '/')}`;
           setCurriculumUrl(url);
         }
       } catch (error) {
@@ -254,7 +254,7 @@ const JobAccordion: React.FC = () => {
           fotos[post.id] = perfilRes.data.fotoPerfil;
         } else {
           // Si no hay foto de perfil, podemos usar una imagen predeterminada (si quieres)
-          fotos[post.id] = 'https://res.cloudinary.com/camilo-app/image/upload/v1752945795/cv/8b920fe7-dc78-40be-9b33-d8d98d9b2778.png';
+          fotos[post.id] = 'https://flowbite.com/docs/images/people/profile-picture-3.jpg';
         }
       }
     } catch (err) {
