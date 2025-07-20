@@ -218,7 +218,7 @@ const Perfil = () => {
         </div>
 
         <div>
-          <label className="block mb-1 font-semibold text-black">Currículum (PDF)</label>
+          <label className="block mb-1 font-semibold text-black">Currículum (PNG/JPG)</label>
           <input type="file" accept="application/pdf" onChange={(e) => setCurriculumFile(e.target.files?.[0] || null)} className="w-full" />
           {perfil.curriculum && (
             <a href={perfil.curriculum} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline mt-2 block">
