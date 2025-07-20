@@ -14,95 +14,83 @@ const Header = ({ toggleSidebar }) => {
   const userIdStr = localStorage.getItem('userId');
   const userId = userIdStr ? Number(userIdStr) : null;
 
-  // Cargar foto desde sessionStorage o localStorage
+  const API_URL = import.meta.env.VITE_API_URL;
+
+  // 🔧 Normaliza la ruta si viene con backslashes
+  const normalizarRuta = (ruta) => {
+    if (!ruta) return null;
+    const cleanPath = ruta.replace(/\\/g, '/');
+    return cleanPath.startsWith('http') ? cleanPath : `${API_URL}/${cleanPath}`;
+  };
+
+  // ✅ Cargar foto del usuario actual desde localStorage
   const cargarFotoDesdeStorage = () => {
-    const storedFoto = sessionStorage.getItem('fotoPerfil') || localStorage.getItem('fotoPerfil');
+    if (!userId) return;
+
+    const storedFoto = localStorage.getItem(`fotoPerfil_${userId}`);
     if (storedFoto) {
-      console.log('📦 Cargando foto desde sessionStorage o localStorage');
-      if (!storedFoto.startsWith('http')) {
-        setFotoPerfil(`${import.meta.env.VITE_API_URL}/${storedFoto}`);
-      } else {
-        setFotoPerfil(storedFoto);
-      }
+      setFotoPerfil(storedFoto);
+      console.log('📦 Cargando foto desde localStorage:', storedFoto);
+    } else {
+      // Si no está guardada, intenta cargar desde el servidor
+      fetchPerfilActual();
     }
   };
 
-  // Al cargar el componente, leer foto desde sessionStorage o localStorage
-  useEffect(() => {
-    cargarFotoDesdeStorage();
-  }, []);
-
-  // Detectar clic fuera del menú
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setDropdownOpen(false);
+  // 🔄 Cargar perfil desde backend y guardar foto
+  const fetchPerfilActual = async () => {
+    if (!userId) return;
+    try {
+      const response = await fetchPerfilByUserId(userId);
+      if (response?.isSuccess && response.data?.fotoPerfil) {
+        const imageURL = normalizarRuta(response.data.fotoPerfil);
+        setFotoPerfil(imageURL);
+        localStorage.setItem(`fotoPerfil_${userId}`, imageURL);
       }
-    };
+    } catch (error) {
+      console.error('❌ Error al obtener el perfil:', error);
+    }
+  };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
+  // 🧹 Logout
+  const handleLogout = () => {
+    setDropdownOpen(false);
 
-  // Logout
- const handleLogout = () => {
-  setDropdownOpen(false);
-  
-  // Obtener la URL de la foto de perfil de localStorage
-  const fotoUrl = localStorage.getItem('fotoPerfil'); 
-  
-  // Guardar la foto de perfil en sessionStorage antes de borrar el localStorage
-  if (fotoUrl) {
-    sessionStorage.setItem('fotoPerfil', fotoUrl); // Guardamos en sessionStorage
-  }
+    // Borra solo datos del usuario actual
+    if (userId) {
+      localStorage.removeItem(`fotoPerfil_${userId}`);
+    }
 
-  // Limpiar localStorage
-  localStorage.clear();
+    localStorage.clear();
+    sessionStorage.clear();
 
-  // Navegar al login
-  navigate('/login');
-};
+    navigate('/login');
+  };
 
-
-  // Subir nueva imagen de perfil
+  // 📤 Subir imagen y actualizar perfil
   const handleImageChange = async (e) => {
     const file = e.target.files?.[0];
-    if (!file || !userId) {
-      console.warn('⚠️ Archivo faltante o userId no definido.');
-      return;
-    }
+    if (!file || !userId) return;
 
     console.log('📤 Archivo seleccionado:', file);
 
     const formData = new FormData();
     formData.append('userId', userId.toString());
+    formData.append('tipoArchivo', 'foto'); // ← importante si backend lo requiere
     formData.append('fotoPerfil', file);
 
     try {
       const res = await updatePerfil(formData);
       console.log('✅ Respuesta del backend:', res);
 
-      if (res?.message) {
-        alert(res.message);
-      }
+      if (res?.message) alert(res.message);
 
-      // Vuelve a obtener la URL real desde el servidor
       const perfilActualizado = await fetchPerfilByUserId(userId);
       if (perfilActualizado.isSuccess && perfilActualizado.data?.fotoPerfil) {
-        let imageURL = perfilActualizado.data.fotoPerfil;
-
-        if (!imageURL.startsWith('http')) {
-          imageURL = `${import.meta.env.VITE_API_URL}/${imageURL}`;
-        }
-
+        const imageURL = normalizarRuta(perfilActualizado.data.fotoPerfil);
         setFotoPerfil(imageURL);
-        localStorage.setItem('fotoPerfil', imageURL);  // Guardamos en localStorage
-        sessionStorage.setItem('fotoPerfil', imageURL);  // Sincronizamos en sessionStorage también
+        localStorage.setItem(`fotoPerfil_${userId}`, imageURL);
         console.log('✅ Imagen de perfil actualizada:', imageURL);
-      } else {
-        console.warn('⚠️ No se pudo actualizar la imagen desde el backend.');
       }
     } catch (err) {
       console.error('❌ Error al subir la imagen:', err);
@@ -110,17 +98,20 @@ const Header = ({ toggleSidebar }) => {
     }
   };
 
-  // Escuchar cambios en localStorage o sessionStorage
+  // ⏳ Inicializa foto al montar componente
   useEffect(() => {
-    const handleStorageChange = () => {
-      cargarFotoDesdeStorage();
-    };
+    cargarFotoDesdeStorage();
+  }, [userId]);
 
-    window.addEventListener('storage', handleStorageChange);
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
+  // 🖱️ Cerrar dropdown si clic fuera
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
     };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   return (
@@ -148,7 +139,9 @@ const Header = ({ toggleSidebar }) => {
           </button>
 
           <div
-            className={`absolute right-0 mt-2 w-48 bg-white text-black rounded-md shadow-lg transform transition-all duration-200 origin-top-right ${isDropdownOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}
+            className={`absolute right-0 mt-2 w-48 bg-white text-black rounded-md shadow-lg transform transition-all duration-200 origin-top-right ${
+              isDropdownOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
+            }`}
           >
             <div className="px-4 py-3 border-b border-gray-200">
               <span className="block text-sm font-medium">{nombreUsuario}</span>
