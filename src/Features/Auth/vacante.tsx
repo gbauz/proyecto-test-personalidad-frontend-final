@@ -77,7 +77,7 @@ const PostulanteDetalle: React.FC<PostulanteDetalleProps> = ({
 
         const perfilRes = await fetchPerfilByUserId(postulanteId);
         if (perfilRes.isSuccess && perfilRes.data?.curriculum) {
-          const url = `http://localhost:3003/${perfilRes.data.curriculum.replace(/\\/g, '/')}`;
+          const url = `${perfilRes.data.curriculum.replace(/\\/g, '/')}`;
           setCurriculumUrl(url);
         }
       } catch (error) {
