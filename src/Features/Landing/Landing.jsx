@@ -50,7 +50,7 @@ const Landing = () => {
               Potencia tu equipo con Humanize
             </h1>
             <p className="text-xl mb-6 text-white" style={{ color: '#FFFFFF' }}>
-              Descubre el verdadero potencial de tu talento con evaluaciones MBTI precisas. 
+              Descubres el verdadero potencial de tu talento con evaluaciones MBTI precisas. 
               Contrata mejor, lidera con inteligencia y crea equipos más sólidos desde el primer día.
             </p>
             <div className="flex gap-4">
