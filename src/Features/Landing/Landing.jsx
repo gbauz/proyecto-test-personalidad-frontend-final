@@ -26,11 +26,10 @@ const Landing = () => {
 
           {/* Navigation Links */}
           <div className="hidden md:flex gap-8">
-            <a href="#" className="hover:text-gray-400">Inicio</a>
-            <a href="#" className="hover:text-gray-400">Caracteristicas</a>
-            <a href="#" className="hover:text-gray-400">Casos de Estudio</a>
-            <a href="#" className="hover:text-gray-400">Blogs</a>
-            <a href="#" className="hover:text-gray-400">Careers</a>
+            <a href="#inicio" className="hover:text-gray-400">Inicio</a>
+            <a href="#caracteristicas" className="hover:text-gray-400">Caracteristicas</a>
+            <a href="#novedades" className="hover:text-gray-400">Novedades</a>
+            <a href="#contacto" className="hover:text-gray-400">Contacto</a>               
           </div>
 
           {/* Contact Button */}
@@ -50,17 +49,10 @@ const Landing = () => {
               Potencia tu equipo con Humanize
             </h1>
             <p className="text-xl mb-6 text-white" style={{ color: '#FFFFFF' }}>
-              Descubres el verdadero potencial de tu talento con evaluaciones MBTI precisas. 
+              Descubre el verdadero potencial de tu talento con evaluaciones MBTI precisas. 
               Contrata mejor, lidera con inteligencia y crea equipos más sólidos desde el primer día.
             </p>
-            <div className="flex gap-4">
-              <button className="bg-[#EB4B15] text-white font-semibold py-3 px-6 rounded-lg hover:bg-gray-200">
-                Realiza una prueba gratuita
-              </button>
-              <button className="bg-[#E5E5E5] text-black font-semibold py-3 px-6 rounded-lg hover:bg-gray-200">
-                Solicita una demo
-              </button>
-            </div>
+           
           </div>
 
           {/* Right Side - Image */}
@@ -75,7 +67,7 @@ const Landing = () => {
       </section>
      
       {/* Features Section */}
-      <section className="py-20 px-6">
+      <section  id="caracteristicas" className="py-20 px-6">
         <h1 className="text-3xl font-bold text-center text-gray-800 mb-12">
           Características poderosas para potenciar<br /> tus decisiones de<spam className="text-[#EA4711]"> Recursos Humanos</spam>
         </h1>
@@ -132,9 +124,7 @@ const Landing = () => {
         Más de 10,000 usuarios en todo el mundo utilizan nuestra tecnología para transformar la gestión del talento humano.
       </p>
       <div className="flex gap-4 mt-6">
-        <button className="bg-[#EB4B15] text-white font-semibold py-3 px-6 rounded-lg hover:bg-gray-200">
-          Prueba Crackle gratis
-        </button>
+        
       </div>
     </div>
 
@@ -150,7 +140,7 @@ const Landing = () => {
 </section>
 
 
-<section className="bg-white text-black py-20 px-6 rounded-[36px] m-4">
+<section  id="Novedades" className="bg-white text-black py-20 px-6 rounded-[36px] m-4">
   <div className="max-w-screen-xl mx-auto text-center mb-16">
     <h1 className="text-4xl font-extrabold">
       ¿Cómo funciona la <span className="text-[#EB4B15]"><br/>sincronización del talento?</span>
@@ -212,20 +202,19 @@ const Landing = () => {
   </div>
 </section>
 
-<section className="bg-[#0D0D0D] text-white py-20 px-6 rounded-[36px] m-4">
+<section   id="contacto"  className="bg-[#0D0D0D] text-white py-20 px-6 rounded-[36px] m-4">
   <div className="max-w-screen-xl mx-auto text-center mb-10">
     <h2 className="text-4xl font-extrabold mb-4 text-white" style={{ color: '#FFFFFF'}}>
       Potencia tu equipo y <span className="text-[#EB4B15]">mira los resultados</span>
     </h2>
     <button className="bg-[#EB4B15] hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-full transition mb-8">
-      Solicita más información
+      Solicitar más información
     </button>
     <div className="flex flex-wrap justify-center gap-6 text-sm text-gray-400 mb-8">
-      <a href="#" className="hover:text-white">Product</a>
-      <a href="#" className="hover:text-white">Features</a>
-      <a href="#" className="hover:text-white">Resources</a>
-      <a href="#" className="hover:text-white">Company</a>
-      <a href="#" className="hover:text-white">Careers</a>
+      <a href="#" className="hover:text-white">Inicio</a>
+      <a href="#" className="hover:text-white">Caracteristicas</a>
+      <a href="#" className="hover:text-white">Novedades</a>
+      <a href="#" className="hover:text-white">Contactos</a>     
     </div>
     <div className="flex justify-center gap-4 text-gray-400 text-lg mb-8">
       <a href="#"><i className="fab fa-facebook"></i></a>
@@ -235,9 +224,9 @@ const Landing = () => {
     </div>
     <div className="text-6xl font-extrabold mb-4">Humanize</div>
     <div className="text-xs text-gray-500 flex flex-col sm:flex-row justify-center gap-4">
-      <span>© 2024 Crackle. All rights reserved.</span>
-      <a href="#" className="hover:text-white">Terms Use</a>
-      <a href="#" className="hover:text-white">Privacy Policies</a>
+      <span>© 2025 Humanize. Todos los Derechos reservados.</span>
+      <a href="#" className="hover:text-white">Términos de uso</a>
+      <a href="#" className="hover:text-white">Política de privacidad</a>
     </div>
   </div>
 </section>
