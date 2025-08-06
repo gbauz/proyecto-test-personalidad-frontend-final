@@ -142,7 +142,7 @@ const MBTITestPage = () => {
       </p>
 
       <p className="text-sm text-[#EB4B15] mt-2" style={{ color: 'black' }} >Paso 1 de 4 • Tiempo estimado: 5 minutos</p>
-      <p className="text-sm text-[#EB4B15] mt-2" style={{ color: 'black' }}>Debes completar test para poder visualizar el tets y las ofertas</p>
+      <p className="text-sm text-[#EB4B15] mt-2" style={{ color: 'black' }}>Debes completar test para poder visualizar el test y las ofertas</p>
 
       <div className="mt-10 grid gap-8 md:grid-cols-3 w-full max-w-6xl">
         {features.map((item, index) => (
