@@ -200,7 +200,7 @@ const Perfil = () => {
         </div>
 
         <div>
-          <label className="block mb-1 font-semibold text-black">País</label>
+          <label className="block mb-1 font-semibold text-black">País de nacimiento</label>
           <input type="text" name="pais" value={perfil.pais} onChange={handleChange} required className="w-120 h-12 px-3 py-2 border rounded border-gray-310 text-black" />
         </div>
 

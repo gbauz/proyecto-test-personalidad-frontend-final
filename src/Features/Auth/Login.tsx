@@ -9,6 +9,9 @@ const Login = () => {
   const [recoveryMessage, setRecoveryMessage] = useState("");
   const [showForgot, setShowForgot] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showConsentModal, setShowConsentModal] = useState(false);
+  const [consentAccepted, setConsentAccepted] = useState(false);
+
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -51,34 +54,31 @@ const Login = () => {
   };
 
   const handleForgotPassword = async () => {
-  if (!recoveryEmail) {
-    setRecoveryMessage("Por favor ingresa un correo.");
-    return;
-  }
+    if (!recoveryEmail) {
+      setRecoveryMessage("Por favor ingresa un correo.");
+      return;
+    }
 
-  try {
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/forgot-password`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: recoveryEmail }),
-    });
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/forgot-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: recoveryEmail }),
+      });
 
-    const data = await response.json();
-    setRecoveryMessage(data.message);
+      const data = await response.json();
+      setRecoveryMessage(data.message);
 
-    // ⏳ Cierra el modal después de 20 segundos
-    setTimeout(() => {
-      setShowForgot(false);
-      setRecoveryEmail("");
-      setRecoveryMessage("");
-    }, 20000); // 20000 ms = 20 segundos
-
-  } catch (err) {
-    console.error(err);
-    setRecoveryMessage("Error al enviar el correo de recuperación.");
-  }
-};
-
+      setTimeout(() => {
+        setShowForgot(false);
+        setRecoveryEmail("");
+        setRecoveryMessage("");
+      }, 20000);
+    } catch (err) {
+      console.error(err);
+      setRecoveryMessage("Error al enviar el correo de recuperación.");
+    }
+  };
 
   const redirigir = () => {
     navigate('/registerPublic');
@@ -154,9 +154,11 @@ const Login = () => {
               </button>
             </div>
 
+            {/* Botón modificado para mostrar consentimiento */}
             <button
-              type="submit"
+              type="button"
               disabled={loading}
+              onClick={() => setShowConsentModal(true)}
               className={`w-full flex justify-center items-center gap-2 ${
                 loading ? 'bg-orange-400' : 'bg-orange-500 hover:bg-orange-600'
               } text-white font-semibold py-2.5 rounded-lg transition duration-300`}
@@ -173,7 +175,6 @@ const Login = () => {
             {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
           </form>
 
-          {/* Enlace de recuperación */}
           <div className="text-center mt-4">
             <button
               type="button"
@@ -213,6 +214,41 @@ const Login = () => {
             {recoveryMessage && (
               <p className="text-sm text-center mt-3 text-gray-600">{recoveryMessage}</p>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Modal de autorización de tratamiento de datos */}
+      {showConsentModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md relative">
+            <h2 className="text-lg font-semibold mb-4 text-center text-gray-800">
+              Autorización de tratamiento de datos
+            </h2>
+            <p className="text-sm text-gray-600 mb-6 text-center">
+              ¿Autorizas el tratamiento de tus datos personales para continuar con el uso de la plataforma?
+            </p>
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={() => {
+                  setShowConsentModal(false);
+                  setConsentAccepted(false);
+                }}
+                className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => {
+                  setConsentAccepted(true);
+                  setShowConsentModal(false);
+                  handleSubmit(new Event('submit') as unknown as React.FormEvent);
+                }}
+                className="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-4 rounded"
+              >
+                Aceptar
+              </button>
+            </div>
           </div>
         </div>
       )}
