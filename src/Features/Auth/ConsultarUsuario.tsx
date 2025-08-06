@@ -266,13 +266,13 @@ function ConsultarUsuario() {
             </label>
             <div className="flex justify-end">
               <button
-                className="mr-3 px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-                onClick={() => setModalEditarVisible(false)}
+                className="mr-3 px-4 bg-blue-800 rounded hover:bg-blue-700"
+                onClick={() => setModalEditarVisible(false)} 
               >
                 Cancelar
               </button>
               <button
-                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700"
                 onClick={guardarCambios}
               >
                 Guardar

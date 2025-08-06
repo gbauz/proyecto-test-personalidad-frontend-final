@@ -35,7 +35,7 @@ return (
           alt="Humanalyze Logo"
           className="w-32 h-auto object-contain mb-2"
         />
-        <span className="text-sm text-gray-500 tracking-wide">Empowering People</span>
+        <span className="text-sm text-gray-800 tracking-wide">Empowering People</span>
       </div>
 
       <nav className="mt-6 px-4">
@@ -144,7 +144,7 @@ return (
     </div>
 
     {/* BOTTOM: Footer fijo */}
-    <div className="px-6 py-4 text-xs text-center text-gray-400">
+    <div className="px-6 py-4 text-xs text-center text-black-800">
       © 2025 Humanalyze
     </div>
   </aside>

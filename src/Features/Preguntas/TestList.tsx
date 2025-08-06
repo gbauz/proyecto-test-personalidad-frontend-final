@@ -79,7 +79,7 @@ const TestList = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-10 px-6">
+    <div className="min-h-screen  py-10 px-6">
       <h1 className="text-4xl font-bold text-center mb-10 text-gray-900">
         Tests Completados
       </h1>

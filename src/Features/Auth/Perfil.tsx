@@ -43,11 +43,9 @@ const Perfil = () => {
     fetchPerfilByUserId(userId)
       .then(async ({ isSuccess, data }) => {
         if (isSuccess && data) {
-          console.log("✅ Perfil obtenido:", data);
           setPerfil(data);
         } else {
           const userInfo = await fetchUserBasicInfo(userId);
-          console.log("ℹ️ Usuario sin perfil completo, cargando datos básicos:", userInfo);
           setPerfil(prev => ({
             ...prev,
             userId,
@@ -56,16 +54,12 @@ const Perfil = () => {
           }));
         }
       })
-      .catch((err) => {
-        console.error("❌ Error al cargar perfil:", err);
-        setError("Error al cargar perfil");
-      })
+      .catch(() => setError("Error al cargar perfil"))
       .finally(() => setLoading(false));
   }, [userId]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-
     if (name === "cedula") {
       const numericValue = value.replace(/\D/g, "");
       if (numericValue.length <= 10) {
@@ -95,43 +89,25 @@ const Perfil = () => {
       let fotoUrl = perfil.fotoPerfil;
       let cvUrl = perfil.curriculum;
 
-      // Subir Foto de Perfil
       if (fotoPerfilFile) {
         const fotoForm = new FormData();
         fotoForm.append('file', fotoPerfilFile);
         fotoForm.append('userId', userId.toString());
         fotoForm.append('tipoArchivo', 'fotoPerfil');
-
-        console.log('📤 Subiendo foto de perfil:', {
-          nombre: fotoPerfilFile.name,
-          tamaño: fotoPerfilFile.size,
-        });
-
         const uploadResult = await updatePerfill(fotoForm);
-        console.log('✅ Foto subida con éxito:', uploadResult);
         fotoUrl = uploadResult.url || uploadResult.secure_url;
-
-        localStorage.setItem('fotoPerfil', fotoUrl);  // Sincroniza con localStorage
+        localStorage.setItem('fotoPerfil', fotoUrl);
       }
 
-      // Subir CV (PDF)
       if (curriculumFile) {
         const cvForm = new FormData();
         cvForm.append('file', curriculumFile);
         cvForm.append('userId', userId.toString());
         cvForm.append('tipoArchivo', 'cv');
-
-        console.log('📤 Subiendo CV:', {
-          nombre: curriculumFile.name,
-          tamaño: curriculumFile.size,
-        });
-
         const cvUploadResult = await updatePerfill(cvForm);
-        console.log('✅ CV subido con éxito:', cvUploadResult);
         cvUrl = cvUploadResult.url || cvUploadResult.secure_url;
       }
 
-      // Preparar y enviar perfil
       const formData = new FormData();
       formData.append('userId', userId.toString());
       formData.append('cedula', perfil.cedula);
@@ -140,27 +116,16 @@ const Perfil = () => {
       formData.append('ciudad', perfil.ciudad);
       formData.append('name', perfil.name || '');
       formData.append('email', perfil.email || '');
-
-      if (fotoUrl) {
-        formData.append('fotoPerfil', fotoUrl);
-        console.log('🖼️ URL de fotoPerfil agregada al form:', fotoUrl);
-      }
-
-      if (cvUrl) {
-        formData.append('curriculum', cvUrl);
-        console.log('📄 URL de CV agregada al form:', cvUrl);
-      }
+      if (fotoUrl) formData.append('fotoPerfil', fotoUrl);
+      if (cvUrl) formData.append('curriculum', cvUrl);
 
       const res = await updatePerfil(formData);
-      console.log('✅ Perfil actualizado en el backend:', res);
       alert(res.message || 'Perfil actualizado correctamente');
 
       const { isSuccess, data } = await fetchPerfilByUserId(userId);
-      if (isSuccess && data) {
-        setPerfil(data);
-      }
+      if (isSuccess && data) setPerfil(data);
+
     } catch (err) {
-      console.error('❌ Error al actualizar perfil:', err);
       setError('Error al actualizar perfil');
     } finally {
       setLoading(false);
@@ -168,30 +133,30 @@ const Perfil = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto p-6 bg-white rounded shadow">
-      <h2 className="text-xl font-semibold mb-4 text-center text-black">Editar Perfil</h2>
-      {error && <p className="text-red-500 mb-4">{error}</p>}
-      {loading && <p className="mb-4 text-center">Cargando...</p>}
+    <div className="max-w-4xl mx-auto p-6 rounded shadow ">
+      <h2 className="text-2xl font-semibold mb-6 text-center text-black">Editar Perfil</h2>
+      {error && <p className="text-red-500 mb-4 text-center">{error}</p>}
+      {loading && <p className="text-center mb-4">Cargando...</p>}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label className="block mb-1 font-semibold text-black">Nombre</label>
-          <input type="text" name="name" value={perfil.name || ""} onChange={handleChange} required className="w-120 h-12 px-3 py-2 border rounded border-gray-310 text-black" />
+          <input type="text" name="name" value={perfil.name || ""} onChange={handleChange} required className="w-full h-12 px-3 border rounded border-gray-300 text-black" />
         </div>
 
         <div>
           <label className="block mb-1 font-semibold text-black">Email</label>
-          <input type="email" name="email" value={perfil.email || ""} onChange={handleChange} required className="w-120 h-12 px-3 py-2 border rounded border-gray-310 text-black" />
+          <input type="email" name="email" value={perfil.email || ""} onChange={handleChange} required className="w-full h-12 px-3 border rounded border-gray-300 text-black" />
         </div>
 
         <div>
           <label className="block mb-1 font-semibold text-black">Cédula</label>
-          <input type="text" name="cedula" value={perfil.cedula} onChange={handleChange} required className="w-120 h-12 px-3 py-2 border rounded border-gray-310 text-black" />
+          <input type="text" name="cedula" value={perfil.cedula} onChange={handleChange} required className="w-full h-12 px-3 border rounded border-gray-300 text-black" />
         </div>
 
         <div>
           <label className="block mb-1 font-semibold text-black">Sexo</label>
-          <select name="sexo" value={perfil.sexo} onChange={handleChange} required className="w-120 h-12 px-3 py-2 border rounded border-gray-310 text-black">
+          <select name="sexo" value={perfil.sexo} onChange={handleChange} required className="w-full h-12 px-3 border rounded border-gray-300 text-black">
             <option value="">Seleccione</option>
             <option value="M">Masculino</option>
             <option value="F">Femenino</option>
@@ -201,12 +166,12 @@ const Perfil = () => {
 
         <div>
           <label className="block mb-1 font-semibold text-black">País de nacimiento</label>
-          <input type="text" name="pais" value={perfil.pais} onChange={handleChange} required className="w-120 h-12 px-3 py-2 border rounded border-gray-310 text-black" />
+          <input type="text" name="pais" value={perfil.pais} onChange={handleChange} required className="w-full h-12 px-3 border rounded border-gray-300 text-black" />
         </div>
 
         <div>
           <label className="block mb-1 font-semibold text-black">Ciudad</label>
-          <input type="text" name="ciudad" value={perfil.ciudad} onChange={handleChange} required className="w-120 h-12 px-3 py-2 border rounded border-gray-310 text-black" />
+          <input type="text" name="ciudad" value={perfil.ciudad} onChange={handleChange} required className="w-full h-12 px-3 border rounded border-gray-300 text-black" />
         </div>
 
         <div>
@@ -218,7 +183,7 @@ const Perfil = () => {
         </div>
 
         <div>
-          <label className="block mb-1 font-semibold text-black">Currículum (PNG/JPG)</label>
+          <label className="block mb-1 font-semibold text-black">Currículum (PDF)</label>
           <input type="file" accept="application/pdf" onChange={(e) => setCurriculumFile(e.target.files?.[0] || null)} className="w-full" />
           {perfil.curriculum && (
             <a href={perfil.curriculum} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline mt-2 block">
@@ -227,9 +192,18 @@ const Perfil = () => {
           )}
         </div>
 
-        <button type="submit" disabled={loading} className={`w-full py-2 rounded text-white font-semibold transition ${loading ? "bg-gray-400" : "bg-orange-500 hover:bg-orange-600"}`}>
-          {loading ? "Guardando..." : "Guardar"}
-        </button>
+        <div className="md:col-span-2 flex justify-center">
+  <button
+    type="submit"
+    disabled={loading}
+    className={`px-50 py-2 text-sm rounded-md text-white font-medium transition duration-300 ${
+      loading ? "bg-gray-400" : "bg-orange-500 hover:bg-orange-600"
+    }`}
+  >
+    {loading ? "Guardando..." : "Guardar"}
+  </button>
+</div>
+
       </form>
     </div>
   );

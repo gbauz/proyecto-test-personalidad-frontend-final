@@ -144,21 +144,11 @@ const Header = ({ toggleSidebar }) => {
             }`}
           >
             <div className="px-4 py-3 border-b border-gray-200">
-              <span className="block text-sm font-medium">{nombreUsuario}</span>
-              <span className="block text-sm text-gray-500 truncate">{rolUsuario}</span>
+              <span className="block text-sm font-medium" style={{ color: 'black' }}>{nombreUsuario}</span>
+              <span className="block text-sm text-gray-500 truncate" style={{ color: 'black' }}>{rolUsuario}</span>
             </div>
             <ul className="py-1">
-              <li className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                <label className="cursor-pointer block">
-                  Cambiar foto
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleImageChange}
-                  />
-                </label>
-              </li>
+             
               <li>
                 <button
                   onClick={handleLogout}

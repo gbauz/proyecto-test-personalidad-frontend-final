@@ -119,12 +119,12 @@ console.log("hola")
       <div className="max-w-4xl w-full grid grid-cols-1 md:grid-cols-2 bg-white shadow-xl rounded-xl overflow-hidden">
 
         {/* Izquierda */}
-        <div className="relative bg-black text-white p-10 flex flex-col justify-center">
-          <h2 className="text-3xl font-extrabold mb-4">Humanalyze</h2>
-          <p className="text-xl font-semibold mb-6 leading-snug">
+        <div className="relative bg-black  p-10 flex flex-col justify-center">
+          <h2 style={{ color: 'white' }} >Humanalyze</h2>
+          <p className="text-xl font-semibold mb-6 leading-snug" style={{ color: 'white' }}>
             Regístrate y accede a tu perfil de personalidad
           </p>
-          <p className="text-sm text-gray-300 mb-6">
+          <p className="text-sm text-white mb-6" style={{ color: 'white' }}>
             Explora tus habilidades y conecta con oportunidades.
           </p>
           <img

@@ -106,7 +106,7 @@ const MBTITestPage = () => {
       img: "https://cdn-icons-png.flaticon.com/512/709/709592.png",
       alt: "Búsqueda",
       text: "Descubre cómo tu personalidad influye en todas las áreas de tu vida",
-      bgColor: "bg-[#E5E5E5]",
+      bgColor: "bg-[#EB4B08]",
     },
     {
       img: "https://cdn-icons-png.flaticon.com/512/9131/9131529.png",
@@ -136,13 +136,13 @@ const MBTITestPage = () => {
         Realizar Test de Personalidad MBTI
       </Motion.h1>
 
-      <p className="text-center text-black max-w-xl mt-4">
+      <p className="text-center text-black max-w-xl mt-4" style={{ color: 'black' }}>
         El MBTI es una herramienta de autoconocimiento que te ayuda a entender tu personalidad
         y mejorar tus relaciones personales y profesionales.
       </p>
 
-      <p className="text-sm text-[#EB4B15] mt-2">Paso 1 de 4 • Tiempo estimado: 5 minutos</p>
-      <p className="text-sm text-[#EB4B15] mt-2">Debes completar test para poder visualizar el tets y las ofertas</p>
+      <p className="text-sm text-[#EB4B15] mt-2" style={{ color: 'black' }} >Paso 1 de 4 • Tiempo estimado: 5 minutos</p>
+      <p className="text-sm text-[#EB4B15] mt-2" style={{ color: 'black' }}>Debes completar test para poder visualizar el tets y las ofertas</p>
 
       <div className="mt-10 grid gap-8 md:grid-cols-3 w-full max-w-6xl">
         {features.map((item, index) => (
@@ -151,10 +151,10 @@ const MBTITestPage = () => {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: index * 0.2 }}
-            className={`rounded-xl p-4 hover:shadow-xl transition-transform hover:scale-105 text-center cursor-pointer ${item.bgColor}`}
+            className={`rounded-xl p-4 hover:shadow-xl transition-transform hover:scale-105 text-center cursor-pointer ${item.bgColor}` }
           >
             <img src={item.img} alt={item.alt} className="w-40 h-40 mx-auto mb-4" />
-            <p className="text-base font-medium text-white">{item.text}</p>
+            <p className="text-base font-medium text-white" style={{ color: 'white' }}>{item.text} </p>
           </Motion.div>
         ))}
       </div>
